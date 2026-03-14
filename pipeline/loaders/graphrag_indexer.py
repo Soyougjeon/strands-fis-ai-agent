@@ -39,43 +39,42 @@ def index_graphrag(tenant: str):
 
 def _run_indexing(tenant, md_files):
     try:
-        from graphrag_toolkit import LexicalGraphIndex
-        from graphrag_toolkit.storage import GraphStoreFactory, VectorStoreFactory
+        from graphrag_toolkit.lexical_graph import LexicalGraphIndex, GraphRAGConfig
+        from graphrag_toolkit.lexical_graph.storage import GraphStoreFactory, VectorStoreFactory
+        from llama_index.core import Document
     except ImportError:
-        print("  ERROR: graphrag-toolkit not installed. Install with: pip install graphrag-toolkit")
+        print("  ERROR: graphrag-toolkit not installed. Install with: "
+              "pip install 'graphrag-toolkit-lexical-graph @ "
+              "git+https://github.com/awslabs/graphrag-toolkit.git@v3.16.1#subdirectory=lexical-graph'")
         _save_dry_run_log(tenant, md_files)
         return
+
+    GraphRAGConfig.extraction_llm = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    GraphRAGConfig.response_llm = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
     neptune_url = f"https://{Config.NEPTUNE_ENDPOINT}:{Config.NEPTUNE_PORT}"
     opensearch_url = Config.OPENSEARCH_ENDPOINT
 
-    graph_store = GraphStoreFactory.for_neptune(
-        neptune_url,
-        region=Config.OPENSEARCH_REGION,
-    )
-    vector_store = VectorStoreFactory.for_opensearch_serverless(
-        opensearch_url,
-        region=Config.OPENSEARCH_REGION,
-    )
+    graph_store = GraphStoreFactory.for_graph_store(neptune_url)
+    vector_store = VectorStoreFactory.for_vector_store(opensearch_url)
 
     index = LexicalGraphIndex(
         graph_store=graph_store,
         vector_store=vector_store,
         tenant_id=tenant,
-        embedding_model_id=Config.EMBEDDING_MODEL_ID,
     )
 
     documents = []
     for md_path in md_files:
         with open(md_path, "r", encoding="utf-8") as f:
             content = f.read()
-        documents.append({
-            "content": content,
-            "metadata": {
+        documents.append(Document(
+            text=content,
+            metadata={
                 "source": os.path.basename(md_path),
                 "tenant": tenant,
             },
-        })
+        ))
 
     print(f"  Indexing {len(documents)} documents to Neptune (tenant={tenant})...")
     index.extract_and_build(documents)

@@ -3,6 +3,7 @@
 import glob
 import json
 import os
+import time
 
 import boto3
 
@@ -13,14 +14,13 @@ TENANTS = ["etf", "bond", "fund"]
 INDEX_SETTINGS = {
     "settings": {
         "index.knn": True,
-        "index.knn.algo_param.ef_search": 512,
     },
     "mappings": {
         "properties": {
             "vector": {
                 "type": "knn_vector",
                 "dimension": Config.EMBEDDING_DIMENSION,
-                "method": {"name": "hnsw", "engine": "nmslib"},
+                "method": {"name": "hnsw", "engine": "faiss"},
             },
             "text": {"type": "text"},
             "source": {"type": "keyword"},
@@ -152,6 +152,7 @@ def _index_to_opensearch(tenant, chunks, embeddings):
 
     print(f"  Creating index: {index_name}")
     client.indices.create(index=index_name, body=INDEX_SETTINGS)
+    time.sleep(5)  # Wait for AOSS index to be ready
 
     for i, (chunk, vector) in enumerate(zip(chunks, embeddings)):
         doc = {
@@ -161,7 +162,15 @@ def _index_to_opensearch(tenant, chunks, embeddings):
             "chunk_index": chunk["chunk_index"],
             "domain": chunk["domain"],
         }
-        client.index(index=index_name, body=doc)
+        for attempt in range(3):
+            try:
+                client.index(index=index_name, body=doc)
+                break
+            except Exception as e:
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
+                else:
+                    raise
 
         if (i + 1) % 100 == 0:
             print(f"  Indexed {i + 1}/{len(chunks)} documents")
