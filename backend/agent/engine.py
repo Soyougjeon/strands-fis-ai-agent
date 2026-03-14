@@ -126,6 +126,14 @@ class AgentEngine:
             for t in recent_turns
         )
 
+        raw_data = exec_data.get("raw_data")
+        if raw_data is not None:
+            raw_data_str = json.dumps(raw_data, ensure_ascii=False, default=str)
+            if len(raw_data_str) > 8000:
+                raw_data_str = raw_data_str[:8000] + "... (truncated)"
+        else:
+            raw_data_str = "없음"
+
         prompt = RESPONSE_GENERATION_PROMPT.format(
             context_summary=context_summary or "없음",
             recent_turns=recent_text or "없음",
@@ -133,6 +141,7 @@ class AgentEngine:
             tool_name=tool_name,
             query=tool_exec_result.get("query_step", {}).get("query", ""),
             result_summary=exec_data.get("result_summary", ""),
+            raw_data=raw_data_str,
         )
 
         response_text = ""
@@ -180,8 +189,13 @@ class AgentEngine:
         )
         output = response["output"]["message"]["content"][0]["text"]
         usage = response.get("usage", {})
+        # Extract JSON from response (handle markdown code blocks)
+        text = output.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+            text = text.rsplit("```", 1)[0].strip()
         return {
-            "text": output,
+            "text": text,
             "tokens_in": usage.get("inputTokens", 0),
             "tokens_out": usage.get("outputTokens", 0),
         }

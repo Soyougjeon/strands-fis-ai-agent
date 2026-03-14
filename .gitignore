@@ -2,6 +2,7 @@ node_modules/
 __pycache__/
 *.pyc
 .env
+.env.*
 *.pem
 dist/
 build/
@@ -10,3 +11,22 @@ cdk.out/
 .DS_Store
 temp-repo/
 *.egg-info/
+
+# AIDLC workflow (not needed for web service)
+.aidlc-rule-details/
+aidlc-docs/
+CLAUDE.md
+
+# Claude Code config
+.claude/
+
+# Kiro / Amazon Q
+.kiro/
+.amazonq/
+
+# Security - credentials & auth
+nginx/.htpasswd
+credentials/
+**/credentials*
+**/secrets*
+*isengard*

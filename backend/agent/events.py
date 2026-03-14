@@ -1,5 +1,12 @@
 import json
 from datetime import datetime, timezone
+from decimal import Decimal
+
+
+def _default_serializer(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
 def make_event(event_type: str, data: dict) -> str:
@@ -8,7 +15,7 @@ def make_event(event_type: str, data: dict) -> str:
         "data": data,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    return json.dumps(event, ensure_ascii=False)
+    return json.dumps(event, ensure_ascii=False, default=_default_serializer)
 
 
 def intent_detected_event(intent: str, confidence: float, latency: float,

@@ -18,8 +18,6 @@ import { useWebSocket } from "./hooks/useWebSocket";
 import { useApi } from "./hooks/useApi";
 import Sidebar from "./components/sidebar/Sidebar";
 import ChatPanel from "./components/chat/ChatPanel";
-import AgentProcessPanel from "./components/chat/AgentProcessPanel";
-import DetailTabs from "./components/chat/DetailTabs";
 import GraphNetworkPage from "./components/visualization/GraphNetworkPage";
 import AdminDashboard from "./components/admin/AdminDashboard";
 
@@ -40,6 +38,7 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentProcess, setCurrentProcess] = useState<Partial<AgentProcess>>({});
   const [currentTotal, setCurrentTotal] = useState<TotalMetrics | null>(null);
+  const [showProcess, setShowProcess] = useState(false);
 
   // Graph state
   const [graphDataMap] = useState<Record<string, GraphData | null>>({
@@ -53,6 +52,13 @@ export default function App() {
   const streamingChartRef = useRef<ChartData | undefined>(undefined);
   const streamingRawRef = useRef<unknown>(undefined);
   const streamingGraphRef = useRef<GraphData | undefined>(undefined);
+  // Ref to avoid stale closure in handleEvent
+  const currentProcessRef = useRef<Partial<AgentProcess>>({});
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentProcessRef.current = currentProcess;
+  }, [currentProcess]);
 
   // Load initial data
   useEffect(() => {
@@ -60,7 +66,7 @@ export default function App() {
     api.getExamples().then(setExamples);
   }, []);
 
-  // WebSocket event handler
+  // WebSocket event handler - NO dependency on currentProcess (uses ref)
   const handleEvent = useCallback((event: AgentEvent) => {
     switch (event.type) {
       case "intent_detected": {
@@ -69,6 +75,8 @@ export default function App() {
           ...prev,
           intent_detection: { ...d, intent: d.intent, confidence: d.confidence },
         }));
+        // Auto-show Agent Process when streaming starts
+        setShowProcess(true);
         break;
       }
       case "tool_selected": {
@@ -130,15 +138,12 @@ export default function App() {
           cost: d.total_cost,
         };
         setCurrentTotal(total);
+        const respStep = { latency: d.total_latency, tokens_in: 0, tokens_out: 0, cost: 0 };
         setCurrentProcess((prev) => ({
           ...prev,
-          response_generation: {
-            latency: d.total_latency,
-            tokens_in: 0,
-            tokens_out: 0,
-            cost: 0,
-          },
+          response_generation: respStep,
         }));
+        // Use ref to get the latest process state (avoids stale closure)
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last && last.role === "assistant") {
@@ -147,6 +152,7 @@ export default function App() {
               {
                 ...last,
                 total,
+                agentProcess: { ...currentProcessRef.current, response_generation: respStep } as AgentProcess,
                 chartData: streamingChartRef.current,
                 rawData: streamingRawRef.current,
                 graphData: streamingGraphRef.current,
@@ -156,7 +162,6 @@ export default function App() {
           return prev;
         });
         setIsStreaming(false);
-        // Refresh conversation list
         api.getConversations().then(setConversations);
         break;
       }
@@ -185,7 +190,6 @@ export default function App() {
   const { connected, sendMessage } = useWebSocket({ onEvent: handleEvent });
 
   const handleSend = (message: string) => {
-    // Add user message
     setMessages((prev) => [
       ...prev,
       {
@@ -195,12 +199,12 @@ export default function App() {
         timestamp: new Date().toISOString(),
       },
     ]);
-    // Reset streaming state
     streamingMsgRef.current = "";
     streamingChartRef.current = undefined;
     streamingRawRef.current = undefined;
     streamingGraphRef.current = undefined;
     setCurrentProcess({});
+    currentProcessRef.current = {};
     setCurrentTotal(null);
     setIsStreaming(true);
     sendMessage(currentSessionId, message);
@@ -210,30 +214,42 @@ export default function App() {
     const detail = await api.getConversation(sessionId);
     setCurrentSessionId(sessionId);
     setMessages(
-      detail.turns.map((t) => [
-        {
-          id: `q-${t.turn_id}`,
-          role: "user" as const,
-          content: t.question,
-          timestamp: t.timestamp,
-        },
-        {
-          id: `a-${t.turn_id}`,
-          role: "assistant" as const,
-          content: t.response,
-          agentProcess: t.agent_process,
-          total: t.total,
-          timestamp: t.timestamp,
-        },
-      ]).flat()
+      detail.turns
+        .map((t) => [
+          {
+            id: `q-${t.turn_id}`,
+            role: "user" as const,
+            content: t.question,
+            timestamp: t.timestamp,
+          },
+          {
+            id: `a-${t.turn_id}`,
+            role: "assistant" as const,
+            content: t.response,
+            agentProcess: t.agent_process,
+            total: t.total,
+            timestamp: t.timestamp,
+          },
+        ])
+        .flat()
     );
     setActiveTab("chat");
+  };
+
+  const handleDeleteConversation = async (sessionId: string) => {
+    await api.deleteConversation(sessionId);
+    setConversations((prev) => prev.filter((c) => c.session_id !== sessionId));
+    if (currentSessionId === sessionId) {
+      setCurrentSessionId(null);
+      setMessages([]);
+    }
   };
 
   const handleNewConversation = () => {
     setCurrentSessionId(null);
     setMessages([]);
     setCurrentProcess({});
+    currentProcessRef.current = {};
     setCurrentTotal(null);
     setActiveTab("chat");
   };
@@ -243,7 +259,7 @@ export default function App() {
       {/* Top nav */}
       <header className="bg-white border-b px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-sm font-bold text-gray-800">Strands FIS</h1>
+          <h1 className="text-sm font-bold text-gray-800">미래에셋증권</h1>
           <nav className="flex gap-1">
             {(["chat", "graph", "admin"] as Tab[]).map((tab) => (
               <button
@@ -261,7 +277,9 @@ export default function App() {
           </nav>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span className={`w-2 h-2 rounded-full ${connected ? "bg-green-400" : "bg-red-400"}`} />
+          <span
+            className={`w-2 h-2 rounded-full ${connected ? "bg-green-400" : "bg-red-400"}`}
+          />
           {connected ? "연결됨" : "연결 끊김"}
         </div>
       </header>
@@ -278,32 +296,22 @@ export default function App() {
           onSelectConversation={handleSelectConversation}
           onNewConversation={handleNewConversation}
           onSelectExample={handleSend}
+          onDeleteConversation={handleDeleteConversation}
         />
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
           {activeTab === "chat" && (
-            <div className="flex h-full">
-              {/* Chat area ~55% */}
-              <div className="flex-[55] min-w-0 border-r">
-                <ChatPanel
-                  messages={messages}
-                  isStreaming={isStreaming}
-                  onSend={handleSend}
-                />
-              </div>
-              {/* Agent Process ~45% */}
-              <div className="flex-[45] min-w-0 flex flex-col">
-                <div className="flex-1 overflow-hidden">
-                  <AgentProcessPanel
-                    process={currentProcess}
-                    total={currentTotal}
-                    isStreaming={isStreaming}
-                  />
-                </div>
-                <DetailTabs process={currentProcess} />
-              </div>
-            </div>
+            <ChatPanel
+              messages={messages}
+              isStreaming={isStreaming}
+              onSend={handleSend}
+              examples={examples}
+              currentProcess={currentProcess}
+              currentTotal={currentTotal}
+              showProcess={showProcess}
+              onToggleProcess={() => setShowProcess(!showProcess)}
+            />
           )}
 
           {activeTab === "graph" && (

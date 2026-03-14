@@ -1,13 +1,26 @@
 """Conversation service - DynamoDB single-table CRUD for conversation turns."""
 
+import json
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
 import boto3
 from boto3.dynamodb.conditions import Key
 
 from backend.config import Config
+
+
+def _convert_floats(obj):
+    """Recursively convert float values to Decimal for DynamoDB."""
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    if isinstance(obj, dict):
+        return {k: _convert_floats(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_convert_floats(i) for i in obj]
+    return obj
 
 
 class ConversationService:
@@ -36,7 +49,7 @@ class ConversationService:
             "session_title": turn_data.get("session_title", ""),
             "context_summary": turn_data.get("context_summary", ""),
         }
-        self.table.put_item(Item=item)
+        self.table.put_item(Item=_convert_floats(item))
 
     def get_context(self, session_id: str) -> dict:
         """Get context for multi-turn: summary + recent 3 turns."""
