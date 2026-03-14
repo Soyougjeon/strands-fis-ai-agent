@@ -2,10 +2,16 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Install system dependencies (git needed for pip install from GitHub)
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies
 COPY pipeline/requirements.txt /tmp/pipeline-req.txt
 COPY backend/requirements.txt /tmp/backend-req.txt
 RUN pip install --no-cache-dir -r /tmp/pipeline-req.txt -r /tmp/backend-req.txt
+
+# NOTE: graphrag-toolkit install skipped for PoC (dependency resolution too slow)
+# Install later via: pip install "graphrag-toolkit-lexical-graph @ git+https://github.com/awslabs/graphrag-toolkit.git@v3.16.1#subdirectory=lexical-graph"
 
 # Copy source
 COPY pipeline/ ./pipeline/

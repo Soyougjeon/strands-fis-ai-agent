@@ -112,6 +112,7 @@ export interface Turn {
 
 // Agent Process
 export interface StepMetrics {
+  [key: string]: unknown;
   latency: number;
   tokens_in: number;
   tokens_out: number;

@@ -129,7 +129,7 @@ yum install -y httpd-tools
 
 # Clone repository
 cd /opt
-git clone https://github.com/YOUR_ORG/strands-fis.git || true
+git clone https://github.com/Soyougjeon/strands-fis.git || true
 cd strands-fis
 
 # Retrieve Aurora secret

@@ -27,8 +27,9 @@ class RAGTool:
             Config.AWS_REGION, "aoss",
             session_token=credentials.token,
         )
+        os_host = Config.OPENSEARCH_ENDPOINT.replace("https://", "").replace("http://", "")
         self.os_client = OpenSearch(
-            hosts=[{"host": Config.OPENSEARCH_ENDPOINT, "port": 443}],
+            hosts=[{"host": os_host, "port": 443}],
             http_auth=self.awsauth,
             use_ssl=True,
             verify_certs=True,

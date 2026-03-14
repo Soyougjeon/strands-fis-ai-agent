@@ -132,12 +132,16 @@ def _index_to_opensearch(tenant, chunks, embeddings):
         session_token=credentials.token,
     )
 
+    # Strip https:// prefix if present
+    os_host = Config.OPENSEARCH_ENDPOINT.replace("https://", "").replace("http://", "")
+
     client = OpenSearch(
-        hosts=[{"host": Config.OPENSEARCH_ENDPOINT, "port": 443}],
+        hosts=[{"host": os_host, "port": 443}],
         http_auth=awsauth,
         use_ssl=True,
         verify_certs=True,
         connection_class=RequestsHttpConnection,
+        timeout=60,
     )
 
     index_name = f"rag-{tenant}"
