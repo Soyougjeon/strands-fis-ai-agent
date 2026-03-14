@@ -64,13 +64,13 @@ class RAGTool:
                 "size": 5,
                 "query": {
                     "knn": {
-                        "embedding": {
+                        "vector": {
                             "vector": embedding,
                             "k": 5,
                         }
                     }
                 },
-                "_source": {"excludes": ["embedding"]},
+                "_source": {"excludes": ["vector"]},
             }
 
             response = self.os_client.search(index=index_name, body=search_body)

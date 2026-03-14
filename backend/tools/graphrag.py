@@ -26,23 +26,28 @@ class GraphRAGTool:
 
         start = time.time()
         try:
-            from graphrag_toolkit import LexicalGraphIndex
-            from graphrag_toolkit.storage import (
+            from graphrag_toolkit.lexical_graph import (
+                LexicalGraphIndex,
+                GraphRAGConfig,
+            )
+            from graphrag_toolkit.lexical_graph.storage import (
                 GraphStoreFactory,
                 VectorStoreFactory,
             )
 
-            graph_store = GraphStoreFactory.for_neptune(
-                f"wss://{self.neptune_endpoint}:{self.neptune_port}/gremlin",
-            )
-            vector_store = VectorStoreFactory.for_opensearch_serverless(
+            GraphRAGConfig.extraction_llm = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+            GraphRAGConfig.response_llm = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+
+            neptune_url = f"https://{self.neptune_endpoint}:{self.neptune_port}"
+            graph_store = GraphStoreFactory.for_graph_store(neptune_url)
+            vector_store = VectorStoreFactory.for_vector_store(
                 self.opensearch_endpoint,
-                f"graphrag-{tenant}",
             )
 
             graph_index = LexicalGraphIndex(
                 graph_store=graph_store,
                 vector_store=vector_store,
+                tenant_id=tenant,
             )
             query_engine = graph_index.as_query_engine()
 
