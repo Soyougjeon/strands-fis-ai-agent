@@ -1,0 +1,12 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+*.pem
+dist/
+build/
+.vite/
+cdk.out/
+.DS_Store
+temp-repo/
+*.egg-info/
