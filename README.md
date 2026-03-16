@@ -4,7 +4,7 @@ AI-powered financial data chatbot with multi-domain support (ETF, Bond, Fund) us
 
 ## Demo
 
-https://github.com/user-attachments/assets/b520f280-0c0a-409b-a7ec-fb36950dc215
+https://github.com/user-attachments/assets/9d547c86-da6b-423c-81a4-a61a47a3cba0
 
 ## Architecture
 
@@ -45,8 +45,8 @@ https://github.com/user-attachments/assets/b520f280-0c0a-409b-a7ec-fb36950dc215
 
 ```bash
 # 1. Clone
-git clone https://github.com/Soyougjeon/strands-fis.git
-cd strands-fis
+git clone https://github.com/Soyougjeon/strands-fis-ai-agent.git
+cd strands-fis-ai-agent
 
 # 2. Configure
 cp .env.example .env
