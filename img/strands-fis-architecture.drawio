@@ -1,0 +1,312 @@
+<mxfile host="app.diagrams.net" modified="2026-03-15T06:56:00.000Z" agent="draw.io" version="24.0.0" type="device">
+  <diagram id="strands-fis-arch" name="Application Architecture">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="Strands FIS - Application Architecture" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="800" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== User ===== -->
+        <mxCell id="user" value="User" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.user;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="280" width="60" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== EC2 Instance Group ===== -->
+        <mxCell id="ec2group" value="EC2 Instance (t3.medium)" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_ec2_instance_contents;strokeColor=#ED7100;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="180" y="70" width="870" height="580" as="geometry"/>
+        </mxCell>
+
+        <!-- C1: Nginx -->
+        <mxCell id="nginx" value="C1: Nginx&#xa;Reverse Proxy&#xa;+ Basic Auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="200" width="130" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- C8: Frontend -->
+        <mxCell id="frontend" value="C8: React SPA&#xa;(Vite + Tailwind)&#xa;Chat | Graph | Admin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="100" width="130" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- C2: FastAPI -->
+        <mxCell id="fastapi" value="C2: FastAPI&#xa;REST + WebSocket&#xa;/api/* /ws/*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="340" width="130" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- C3: Agent Engine -->
+        <mxCell id="agent" value="C3: Agent Engine&#xa;(Strands SDK)&#xa;Intent → Tool → Response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="240" width="170" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- C5: Conversation Manager -->
+        <mxCell id="convmgr" value="C5: Conversation&#xa;Manager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="340" width="130" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- C6: Token Tracker -->
+        <mxCell id="token" value="C6: Token&#xa;Tracker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="410" width="130" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Tools Group -->
+        <mxCell id="toolsgroup" value="Tools" style="swimlane;startSize=20;fillColor=none;strokeColor=#d79b00;dashed=1;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="100" width="350" height="280" as="geometry"/>
+        </mxCell>
+
+        <!-- C4a: Text2SQL -->
+        <mxCell id="text2sql" value="C4a: Text2SQL&#xa;NL → SQL → Aurora PG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="toolsgroup">
+          <mxGeometry x="20" y="30" width="150" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- C4b: RAG -->
+        <mxCell id="rag" value="C4b: RAG Tool&#xa;Vector Search (kNN)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="toolsgroup">
+          <mxGeometry x="185" y="30" width="150" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- C4c: GraphRAG -->
+        <mxCell id="graphrag" value="C4c: GraphRAG&#xa;LexicalGraph&#xa;(Vector + Graph)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="toolsgroup">
+          <mxGeometry x="20" y="100" width="150" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- C4d: OpenCypher -->
+        <mxCell id="cypher" value="C4d: OpenCypher&#xa;NL → Cypher → Neptune" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="toolsgroup">
+          <mxGeometry x="185" y="100" width="150" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- C6b: Visualization -->
+        <mxCell id="viz" value="Visualization Service&#xa;Graph → Cytoscape.js&#xa;SQL → Chart" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="toolsgroup">
+          <mxGeometry x="20" y="175" width="150" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- C7: Pipeline -->
+        <mxCell id="pipeline" value="C7: Mock Data Pipeline&#xa;ETF / Bond / Fund&#xa;CSV + MD → DB/Index" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="500" width="170" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== AWS Services ===== -->
+        <mxCell id="awsgroup" value="AWS Managed Services" style="swimlane;startSize=25;fillColor=none;strokeColor=#FF8000;dashed=1;fontSize=12;fontStyle=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="70" width="460" height="580" as="geometry"/>
+        </mxCell>
+
+        <!-- Aurora PostgreSQL -->
+        <mxCell id="aurora" value="Aurora PostgreSQL&#xa;(Serverless v2)&#xa;ETF/Bond/Fund Tables&#xa;+ Conversations" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.aurora;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;whiteSpace=wrap;html=1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="awsgroup">
+          <mxGeometry x="30" y="50" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Neptune -->
+        <mxCell id="neptune_db" value="Neptune DB&#xa;(Serverless)&#xa;Knowledge Graph&#xa;OpenCypher" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.neptune;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;whiteSpace=wrap;html=1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="awsgroup">
+          <mxGeometry x="170" y="50" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- OpenSearch -->
+        <mxCell id="opensearch" value="OpenSearch&#xa;Serverless (AOSS)&#xa;Vector Embeddings&#xa;6 Indices" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.opensearch_service;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;whiteSpace=wrap;html=1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="awsgroup">
+          <mxGeometry x="310" y="50" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Bedrock -->
+        <mxCell id="bedrock" value="Amazon Bedrock&#xa;Claude Sonnet (LLM)&#xa;Titan Embed v2" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sagemaker;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;whiteSpace=wrap;html=1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="awsgroup">
+          <mxGeometry x="170" y="230" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- DynamoDB -->
+        <mxCell id="dynamo" value="DynamoDB&#xa;conversation_turns" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;whiteSpace=wrap;html=1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="awsgroup">
+          <mxGeometry x="30" y="230" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Secrets Manager -->
+        <mxCell id="secrets" value="Secrets Manager&#xa;Aurora Credentials" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.secrets_manager;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;whiteSpace=wrap;html=1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="awsgroup">
+          <mxGeometry x="310" y="230" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- VPC Label -->
+        <mxCell id="vpclabel" value="VPC (2 AZs, Public + Private Subnets, NAT GW)" style="text;html=1;fontSize=10;fontStyle=2;align=center;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;rounded=1;" vertex="1" parent="awsgroup">
+          <mxGeometry x="30" y="400" width="380" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== Connections ===== -->
+
+        <!-- User -> Nginx -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#333333;fontSize=10;" edge="1" source="user" target="nginx" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1label" value="HTTP/WS" style="edgeLabel;html=1;fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry x="-0.2" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- Nginx -> Frontend (static) -->
+        <mxCell id="e_nf" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;fontSize=10;" edge="1" source="nginx" target="frontend" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_nf_label" value="Static" style="edgeLabel;html=1;fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="e_nf">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- Nginx -> FastAPI -->
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="nginx" target="fastapi" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2label" value="/api /ws" style="edgeLabel;html=1;fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="e2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- FastAPI -> Agent -->
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;" edge="1" source="fastapi" target="agent" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- FastAPI -> ConvMgr -->
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;" edge="1" source="fastapi" target="convmgr" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- FastAPI -> Token -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;" edge="1" source="fastapi" target="token" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Agent -> Tools (Text2SQL) -->
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;" edge="1" source="agent" target="text2sql" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Agent -> Tools (RAG) -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;" edge="1" source="agent" target="rag" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Agent -> Tools (GraphRAG) -->
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;" edge="1" source="agent" target="graphrag" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Agent -> Tools (OpenCypher) -->
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;" edge="1" source="agent" target="cypher" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Text2SQL -> Aurora -->
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF8000;dashed=1;" edge="1" source="text2sql" target="aurora" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10label" value="SQL" style="edgeLabel;html=1;fontSize=9;fontColor=#FF8000;" vertex="1" connectable="0" parent="e10">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- RAG -> OpenSearch -->
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF8000;dashed=1;" edge="1" source="rag" target="opensearch" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e11label" value="kNN" style="edgeLabel;html=1;fontSize=9;fontColor=#FF8000;" vertex="1" connectable="0" parent="e11">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- GraphRAG -> Neptune -->
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF8000;dashed=1;" edge="1" source="graphrag" target="neptune_db" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- GraphRAG -> OpenSearch -->
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF8000;dashed=1;" edge="1" source="graphrag" target="opensearch" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- OpenCypher -> Neptune -->
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF8000;dashed=1;" edge="1" source="cypher" target="neptune_db" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14label" value="Cypher" style="edgeLabel;html=1;fontSize=9;fontColor=#FF8000;" vertex="1" connectable="0" parent="e14">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- Agent -> Bedrock -->
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF8000;dashed=1;" edge="1" source="agent" target="bedrock" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e15label" value="LLM / Embed" style="edgeLabel;html=1;fontSize=9;fontColor=#FF8000;" vertex="1" connectable="0" parent="e15">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ConvMgr -> DynamoDB -->
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF8000;dashed=1;" edge="1" source="convmgr" target="dynamo" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Pipeline -> Aurora -->
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;dashed=1;" edge="1" source="pipeline" target="aurora" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Pipeline -> Neptune -->
+        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;dashed=1;" edge="1" source="pipeline" target="neptune_db" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Pipeline -> OpenSearch -->
+        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;dashed=1;" edge="1" source="pipeline" target="opensearch" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== Legend ===== -->
+        <mxCell id="legend" value="" style="swimlane;startSize=20;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="700" width="460" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_title" value="Legend" style="text;html=1;fontSize=12;fontStyle=1;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="5" width="100" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg1" value="" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg1t" value="Infrastructure (Nginx, FastAPI)" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="40" y="28" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="55" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg2t" value="Core Logic (Agent, Tools, Viz)" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="40" y="53" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="80" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg3t" value="Services (Conversation, Token)" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="40" y="78" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg4" value="" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="105" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg4t" value="Frontend (React SPA)" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="40" y="103" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg5" value="" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="130" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg5t" value="Data Pipeline (Mock Data)" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="40" y="128" width="200" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Data Flow Legend -->
+        <mxCell id="leg6" value="" style="endArrow=classic;strokeColor=#333333;" edge="1" parent="legend">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="250" y="40" as="sourcePoint"/>
+            <mxPoint x="300" y="40" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg6t" value="Internal Call" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="310" y="30" width="120" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg7" value="" style="endArrow=classic;strokeColor=#FF8000;dashed=1;" edge="1" parent="legend">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="250" y="65" as="sourcePoint"/>
+            <mxPoint x="300" y="65" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg7t" value="AWS Service Call" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="310" y="55" width="120" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -3,33 +3,26 @@
     "ETF": {
       "text2sql": [
         {"question": "TIGER ETF 중 AUM이 가장 큰 상위 5개는?", "description": "AUM 기준 상위 ETF 조회"},
-        {"question": "반도체 ETF 보유종목 비중 비교", "description": "카테고리별 보유종목 분석"},
-        {"question": "배당 ETF 분배금 이력 보여줘", "description": "분배금 내역 조회"},
-        {"question": "총보수 0.5% 이하 ETF 목록", "description": "저비용 ETF 필터링"}
+        {"question": "총보수 0.5% 이하 ETF 목록 보여줘", "description": "저비용 ETF 필터링"}
       ],
       "rag": [
-        {"question": "ETF 투자 전략에 대해 설명해줘", "description": "ETF 투자 전략 문서 검색"},
-        {"question": "인덱스 펀드와 ETF 차이점은?", "description": "개념 비교 검색"},
-        {"question": "TIGER ETF 환헤지 전략은?", "description": "환헤지 관련 문서 검색"}
+        {"question": "ETF 투자 전략에 대해 설명해줘", "description": "ETF 투자 전략 문서 검색"}
       ],
       "graphrag": [
-        {"question": "반도체 ETF들이 공통으로 보유한 종목은?", "description": "공통 보유종목 관계 분석"},
-        {"question": "TIGER 나스닥100과 관련된 위험 요소는?", "description": "위험 요소 관계 탐색"}
+        {"question": "TIGER 나스닥100과 글로벌리츠의 투자 특성의 공통점과 차이를 분석해줘", "description": "ETF 투자 특성 공통점/차이 관계 분석"}
       ],
       "opencypher": [
-        {"question": "ETF 네트워크 그래프 보여줘", "description": "ETF 관계 네트워크 시각화"},
-        {"question": "삼성전자를 보유한 ETF 2홉 연결 관계", "description": "그래프 홉 탐색"}
+        {"question": "TIGER 반도체와 보유 종목이 겹치는 ETF는?", "description": "보유종목 기반 ETF 관계 탐색"},
+        {"question": "삼성전자를 보유한 ETF 2홉 연결 관계를 보여줘", "description": "그래프 홉 탐색"}
       ]
     },
     "Bond": {
       "text2sql": [
         {"question": "AAA 등급 채권 목록 보여줘", "description": "신용등급별 채권 조회"},
-        {"question": "회사채 발행금액 상위 10개", "description": "발행금액 순위"},
-        {"question": "최근 수익률 변동이 큰 채권은?", "description": "수익률 변동 분석"}
+        {"question": "회사채 발행금액 상위 10개", "description": "발행금액 순위"}
       ],
       "rag": [
-        {"question": "채권 금리와 가격의 관계는?", "description": "채권 기본 개념 검색"},
-        {"question": "회사채 투자 시 주의사항", "description": "투자 가이드 검색"}
+        {"question": "채권 금리와 가격의 관계는?", "description": "채권 기본 개념 검색"}
       ],
       "graphrag": [
         {"question": "같은 발행사의 채권들 관계 분석", "description": "발행사 기반 관계 탐색"}
@@ -41,12 +34,10 @@
     "Fund": {
       "text2sql": [
         {"question": "주식형 펀드 수익률 상위 10개", "description": "수익률 기준 순위"},
-        {"question": "총보수 1% 이하 펀드 목록", "description": "저비용 펀드 필터링"},
-        {"question": "벤치마크 대비 초과수익 펀드", "description": "초과수익 분석"}
+        {"question": "총보수 1% 이하 펀드 목록", "description": "저비용 펀드 필터링"}
       ],
       "rag": [
-        {"question": "펀드 위험등급 의미 설명해줘", "description": "위험등급 개념 검색"},
-        {"question": "액티브 펀드와 패시브 펀드 차이", "description": "펀드 유형 비교"}
+        {"question": "펀드 위험등급 의미 설명해줘", "description": "위험등급 개념 검색"}
       ],
       "graphrag": [
         {"question": "같은 운용사 펀드들의 공통 보유종목", "description": "운용사별 보유종목 관계"}

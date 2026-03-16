@@ -26,7 +26,7 @@ const TOOL_LABELS: Record<string, string> = {
   text2sql: "SQL",
   rag: "RAG",
   graphrag: "GraphRAG",
-  opencypher: "OpenCypher",
+  opencypher: "openCypher",
 };
 
 export default function Sidebar({
@@ -79,7 +79,7 @@ export default function Sidebar({
             onClick={() => setActiveTab(tab.key)}
             className={`flex-1 px-1 py-2 text-[11px] font-medium transition-colors ${
               activeTab === tab.key
-                ? "text-blue-600 border-b-2 border-blue-600"
+                ? "text-orange-600 border-b-2 border-orange-500"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -95,7 +95,7 @@ export default function Sidebar({
             {/* New conversation */}
             <button
               onClick={onNewConversation}
-              className="w-full mx-0 mt-2 mb-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 font-medium text-left"
+              className="w-full mx-0 mt-2 mb-1 px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 font-medium text-left"
             >
               + 새 대화
             </button>
@@ -111,7 +111,7 @@ export default function Sidebar({
                 key={conv.session_id}
                 className={`group flex items-center hover:bg-gray-100 ${
                   conv.session_id === currentSessionId
-                    ? "bg-blue-50"
+                    ? "bg-orange-50"
                     : ""
                 }`}
               >
@@ -119,7 +119,7 @@ export default function Sidebar({
                   onClick={() => onSelectConversation(conv.session_id)}
                   className={`flex-1 text-left px-3 py-2 text-xs truncate ${
                     conv.session_id === currentSessionId
-                      ? "font-semibold text-blue-700"
+                      ? "font-semibold text-orange-700"
                       : "text-gray-600"
                   }`}
                 >
@@ -148,14 +148,19 @@ export default function Sidebar({
             {domainExamples[activeTab] ? (
               Object.entries(domainExamples[activeTab]).map(([tool, queries]) => (
                 <div key={tool} className="mb-2">
-                  <p className="px-3 py-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                  <p className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                    tool === "text2sql" ? "text-blue-600" :
+                    tool === "rag" ? "text-green-600" :
+                    tool === "graphrag" ? "text-purple-600" :
+                    "text-cyan-600"
+                  }`}>
                     {TOOL_LABELS[tool] || tool}
                   </p>
                   {queries.map((q, i) => (
                     <button
                       key={i}
                       onClick={() => onSelectExample(q.question)}
-                      className="w-full text-left px-3 py-1.5 text-xs text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+                      className="w-full text-left px-3 py-1.5 text-xs text-gray-600 hover:bg-orange-50 hover:text-orange-600"
                       title={q.question}
                     >
                       <span className="line-clamp-2">{q.question}</span>

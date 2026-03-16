@@ -10,8 +10,12 @@ COPY pipeline/requirements.txt /tmp/pipeline-req.txt
 COPY backend/requirements.txt /tmp/backend-req.txt
 RUN pip install --no-cache-dir -r /tmp/pipeline-req.txt -r /tmp/backend-req.txt
 
-# NOTE: graphrag-toolkit install skipped for PoC (dependency resolution too slow)
-# Install later via: pip install "graphrag-toolkit-lexical-graph @ git+https://github.com/awslabs/graphrag-toolkit.git@v3.16.1#subdirectory=lexical-graph"
+# Install graphrag-toolkit (lexical-graph) with OpenSearch dependencies
+RUN pip install --no-cache-dir \
+    opensearch-py \
+    llama-index-vector-stores-opensearch \
+    "graphrag-toolkit-lexical-graph @ git+https://github.com/awslabs/graphrag-toolkit.git#subdirectory=lexical-graph" \
+    || echo "WARNING: graphrag-toolkit install failed, continuing without it"
 
 # Copy source
 COPY pipeline/ ./pipeline/

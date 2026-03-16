@@ -1,16 +1,13 @@
-INTENT_DETECTION_PROMPT = """당신은 금융 데이터 질의를 분류하는 전문가입니다.
-사용자의 질문을 다음 3가지 Intent 중 하나로 분류하세요:
+INTENT_AND_TOOL_PROMPT = """당신은 금융 데이터 질의를 분류하고 최적의 도구를 선택하는 전문가입니다.
 
+[Step 1: Intent 분류]
+사용자의 질문을 다음 3가지 Intent 중 하나로 분류하세요:
 - ETF: TIGER ETF, 상장지수펀드, 인덱스 펀드, ETF 관련 질문
 - Bond: 채권, 국채, 회사채, 금리, 신용등급, 수익률(채권) 관련 질문
 - Fund: 공모펀드, 뮤추얼펀드, 운용사, 펀드 수익률, 위험등급 관련 질문
 
-반드시 JSON으로만 응답하세요:
-{"intent": "ETF|Bond|Fund", "confidence": 0.0~1.0}
-"""
-
-TOOL_SELECTION_PROMPT = """사용자의 질문에 가장 적합한 데이터 접근 방식을 선택하세요:
-
+[Step 2: Tool 선택]
+가장 적합한 데이터 접근 방식을 선택하세요:
 1. text2sql: 정확한 수치 조회, 필터링, 집계, 정렬, 비교 (SQL 쿼리)
    예: "AUM 상위 10개", "수익률 비교", "목록 보여줘", "~ 이상/이하"
 2. rag: 비정형 문서 검색, 설명, 특성, 전략, 개념 (벡터 검색)
@@ -21,8 +18,12 @@ TOOL_SELECTION_PROMPT = """사용자의 질문에 가장 적합한 데이터 접
    예: "2홉 연결 엔티티", "전체 네트워크 그래프 보여줘"
 
 반드시 JSON으로만 응답하세요:
-{"tool": "text2sql|rag|graphrag|opencypher", "rationale": "선택 이유"}
+{"intent": "ETF|Bond|Fund", "confidence": 0.0~1.0, "tool": "text2sql|rag|graphrag|opencypher", "rationale": "선택 이유"}
 """
+
+# Keep old names for backwards compatibility (unused but avoids import errors)
+INTENT_DETECTION_PROMPT = INTENT_AND_TOOL_PROMPT
+TOOL_SELECTION_PROMPT = INTENT_AND_TOOL_PROMPT
 
 TEXT2SQL_PROMPT_TEMPLATE = """당신은 SQL 전문가입니다. 사용자의 자연어 질문을 PostgreSQL SQL로 변환하세요.
 
@@ -45,16 +46,58 @@ SQL:
 
 OPENCYPHER_PROMPT_TEMPLATE = """당신은 OpenCypher 쿼리 전문가입니다. 사용자의 자연어 질문을 Neptune OpenCypher로 변환하세요.
 
-[그래프 스키마]
-노드 타입: {node_types}
-관계 타입: {relationship_types}
-테넌트: {tenant}
+[그래프 구조]
+- 엔티티 노드: `__Entity__{tenant}__` (속성: value=이름, class=분류)
+- 엔티티 간 관계: `__RELATION__` (속성: value=관계명)
+- 관계 종류: HOLDS, MANAGED_BY, TRACKS, SECTOR, CATEGORY, SAME_BENCHMARK, SHARES_HOLDING, ISSUED_BY, RATED, SAME_ISSUER, TYPE_OF, BENCHMARKS, RISK_GRADE, SAME_COMPANY 등
+- class 값: ETF, Holding, Index, Sector, Category, AssetManager, Bond, Issuer, CreditRating, Fund, ManagementCompany, Benchmark, FundType, RiskGrade
+
+[관계 방향 - 매우 중요]
+모든 관계는 반드시 방향 화살표 -> 를 사용하세요. 방향 없는 -[r]- 는 사용 금지입니다.
+주체(ETF/Bond/Fund) → 대상 방향:
+- (ETF)-[HOLDS]->(Holding): ETF가 종목을 보유
+- (ETF)-[TRACKS]->(Index): ETF가 벤치마크를 추종
+- (ETF)-[MANAGED_BY]->(AssetManager): ETF 운용사
+- (ETF)-[CATEGORY]->(Category): ETF 대분류
+- (ETF)-[SECTOR]->(Sector): ETF 소분류
+- (ETF)-[SAME_BENCHMARK]->(ETF): 벤치마크 공유 ETF
+- (ETF)-[SHARES_HOLDING]->(ETF): 보유종목 공유 ETF
+- (Bond)-[ISSUED_BY]->(Issuer): 채권 발행자
+- (Bond)-[RATED]->(CreditRating): 채권 신용등급
+- (Fund)-[MANAGED_BY]->(ManagementCompany): 펀드 운용사
+- (Fund)-[HOLDS]->(Holding): 펀드 보유종목
+- (Fund)-[BENCHMARKS]->(Benchmark): 펀드 벤치마크
+
+주의: "삼성전자를 보유한 ETF"를 찾으려면 (etf)-[HOLDS]->(삼성전자) 방향입니다.
+절대로 (삼성전자)-[]->(etf) 방향으로 작성하지 마세요.
+
+[RETURN 별칭 규칙 - 반드시 준수]
+RETURN 절에서 반드시 다음 별칭을 사용하세요:
+- 출발 노드: source
+- 관계명: relation
+- 도착 노드: target
+예: RETURN e.value AS source, r.value AS relation, f.value AS target
+
+[예시 쿼리]
+Q: ETF 네트워크 그래프 보여줘
+Cypher: MATCH (e:`__Entity__{tenant}__`)-[r:`__RELATION__`]->(f:`__Entity__{tenant}__`) RETURN e.value AS source, r.value AS relation, f.value AS target LIMIT 50
+
+Q: 삼성전자를 보유한 ETF의 2홉 연결 관계
+Cypher: MATCH (etf:`__Entity__{tenant}__`)-[r1:`__RELATION__`]->(h:`__Entity__{tenant}__`) WHERE h.value = '삼성전자' AND r1.value = 'HOLDS' WITH etf MATCH (etf)-[r2:`__RELATION__`]->(related:`__Entity__{tenant}__`) RETURN etf.value AS source, r2.value AS relation, related.value AS target LIMIT 50
+
+Q: 반도체 ETF들이 공통으로 보유한 종목
+Cypher: MATCH (etf:`__Entity__{tenant}__`)-[r:`__RELATION__`]->(h:`__Entity__{tenant}__`) WHERE etf.value CONTAINS '반도체' AND r.value = 'HOLDS' RETURN etf.value AS source, r.value AS relation, h.value AS target LIMIT 50
+
+Q: KOSPI를 추종하는 ETF 목록
+Cypher: MATCH (etf:`__Entity__{tenant}__`)-[r:`__RELATION__`]->(idx:`__Entity__{tenant}__`) WHERE idx.value = 'KOSPI' AND r.value = 'TRACKS' RETURN etf.value AS source, r.value AS relation, idx.value AS target LIMIT 50
 
 [규칙]
-- MATCH, RETURN, WHERE, ORDER BY, LIMIT만 사용하세요.
-- 반드시 WHERE 절에 n.__tenant__ = '{tenant}'를 포함하세요.
-- LIMIT이 없으면 LIMIT 50을 추가하세요.
-- CREATE, DELETE, SET 등 쓰기 작업은 절대 사용하지 마세요.
+- 노드 라벨에 백틱 사용: `__Entity__{tenant}__`
+- MATCH, RETURN, WHERE, ORDER BY, LIMIT, WITH만 사용
+- LIMIT 50 이하
+- CREATE, DELETE, SET 등 쓰기 작업 절대 금지
+- Neptune은 any(), all() 같은 predicate 함수 미지원
+- 반드시 Cypher 쿼리만 출력 (설명 없이)
 
 [질문]
 Q: {question}
@@ -139,18 +182,9 @@ SQL: SELECT fp.name, perf.return_1y, perf.bm_return_1y, (perf.return_1y - perf.b
 """,
 }
 
-# OpenCypher 그래프 스키마
+# OpenCypher 그래프 스키마 (graphrag_toolkit 형식 - tenant가 라벨에 포함)
 GRAPH_SCHEMA = {
-    "ETF": {
-        "node_types": "ETF, Index, AssetManager, Holding, Sector, RiskFactor",
-        "relationship_types": "TRACKS_INDEX, MANAGED_BY, HOLDS, CONTAINS, AFFECTS",
-    },
-    "Bond": {
-        "node_types": "Bond, Issuer, CreditRating, Market, RiskFactor",
-        "relationship_types": "ISSUED_BY, RATED_BY, TRADED_IN, AFFECTS",
-    },
-    "Fund": {
-        "node_types": "Fund, ManagementCompany, Benchmark, Holding, Sector, RiskFactor",
-        "relationship_types": "MANAGED_BY, BENCHMARKS, HOLDS, CONTAINS, AFFECTS",
-    },
+    "ETF": {"tenant": "etf"},
+    "Bond": {"tenant": "bond"},
+    "Fund": {"tenant": "fund"},
 }

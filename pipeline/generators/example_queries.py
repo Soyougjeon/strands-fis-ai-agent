@@ -19,9 +19,9 @@ EXAMPLE_QUERIES = {
             {"question": "배당형 ETF의 분배금 정책은 어떻게 되나요?", "description": "분배금 관련 문서 검색"},
         ],
         "graphrag": [
-            {"question": "반도체 섹터 ETF들이 공통으로 보유한 종목은?", "description": "ETF 간 공통 보유종목 관계 탐색"},
-            {"question": "삼성전자를 보유한 ETF들의 관계를 보여줘", "description": "종목 중심 ETF 연결 관계"},
-            {"question": "해외주식 ETF와 관련된 위험 요소들의 연결 관계는?", "description": "위험 요소 네트워크 탐색"},
+            {"question": "TIGER 나스닥100과 글로벌리츠의 투자 특성의 공통점과 차이를 분석해줘", "description": "ETF 투자 특성 공통점/차이 관계 분석"},
+            {"question": "해외주식 ETF들의 위험 요소 간 연결 관계를 분석해줘", "description": "위험 요소 간 관계 탐색"},
+            {"question": "나스닥100 ETF 관련 위험 요소와 투자 전략의 관계는?", "description": "위험-전략 관계 분석"},
         ],
         "opencypher": [
             {"question": "TIGER S&P500에서 2홉 내 연결된 엔티티를 보여줘", "description": "ETF 중심 그래프 탐색"},

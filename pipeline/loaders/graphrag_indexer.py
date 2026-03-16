@@ -9,18 +9,28 @@ import os
 
 from pipeline.config import Config
 
-TENANTS = ["etf", "bond", "fund"]
+# Mapping: graphrag tenant_id → MD file prefix
+TENANT_MAP = {
+    "etfgrag": "etf",
+    "bondgrag": "bond",
+    "fundgrag": "fund",
+}
 
 
 def index_all():
-    for tenant in TENANTS:
+    for tenant in TENANT_MAP:
         index_graphrag(tenant)
 
 
 def index_graphrag(tenant: str):
+    md_prefix = TENANT_MAP.get(tenant, tenant)
     md_dir = os.path.join(Config.DATA_DIR, "graphrag")
-    md_pattern = os.path.join(md_dir, f"{tenant}_*.md")
+    md_pattern = os.path.join(md_dir, f"{md_prefix}_*.md")
     md_files = sorted(glob.glob(md_pattern))
+    # Also include overview file
+    overview = os.path.join(md_dir, f"{md_prefix}_overview.md")
+    if overview not in md_files and os.path.exists(overview):
+        md_files.append(overview)
 
     if not md_files:
         print(f"  SKIP: No MD files found for tenant '{tenant}' at {md_pattern}")

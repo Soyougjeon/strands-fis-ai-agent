@@ -47,6 +47,7 @@ export interface QueryExecutedData {
   raw_data: unknown;
   graph_data: GraphData | null;
   chart_data: ChartData | null;
+  lexical_graph_data: GraphData | null;
   latency: number;
 }
 
@@ -55,6 +56,10 @@ export interface ResponseCompleteData {
   total_tokens_in: number;
   total_tokens_out: number;
   total_cost: number;
+  resp_latency: number;
+  resp_tokens_in: number;
+  resp_tokens_out: number;
+  resp_cost: number;
 }
 
 // Visualization
@@ -156,6 +161,7 @@ export interface ChatMessage {
   total?: TotalMetrics;
   chartData?: ChartData;
   graphData?: GraphData;
+  lexicalGraphData?: GraphData;
   rawData?: unknown;
   timestamp: string;
 }

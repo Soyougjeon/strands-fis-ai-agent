@@ -30,3 +30,10 @@ credentials/
 **/credentials*
 **/secrets*
 *isengard*
+
+# Test scripts (session debugging)
+test_*.py
+
+# Large media files
+*.mov
+*.mp4

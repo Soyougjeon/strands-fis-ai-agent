@@ -1,0 +1,224 @@
+<mxfile host="app.diagrams.net" modified="2026-03-16T04:42:00.000Z" agent="draw.io" version="24.0.0" type="device">
+  <diagram id="rag-seq" name="RAG Sequence">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="RAG Tool — Sequence Diagram (Query → Response)" style="text;html=1;fontSize=18;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="250" y="10" width="600" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== Lifeline Headers ===== -->
+        <mxCell id="h_user" value="User&#xa;(Browser)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="50" y="60" width="100" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_fastapi" value="FastAPI&#xa;ChatService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="210" y="60" width="100" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_agent" value="Agent&#xa;Engine" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="380" y="60" width="80" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_bedrock1" value="Bedrock&#xa;(Claude)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="530" y="60" width="80" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_rag" value="RAG&#xa;Tool" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="680" y="60" width="80" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_titan" value="Bedrock&#xa;(Titan v2)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="830" y="60" width="80" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_os" value="OpenSearch&#xa;Serverless" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="980" y="60" width="100" height="800" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_bedrock2" value="Bedrock&#xa;(Claude)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;size=40;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="60" width="80" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== Phase 1: Intent + Tool ===== -->
+
+        <!-- 1. User -> FastAPI -->
+        <mxCell id="m1" value="1. WS: {session_id, message}" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="100" y="130" as="sourcePoint"/>
+            <mxPoint x="260" y="130" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. FastAPI -> Agent -->
+        <mxCell id="m2" value="2. handle_message()" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="160" as="sourcePoint"/>
+            <mxPoint x="420" y="160" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. Agent -> Bedrock: Intent+Tool -->
+        <mxCell id="m3" value="3. converse(INTENT_AND_TOOL_PROMPT)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#01A88D;fontSize=10;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="190" as="sourcePoint"/>
+            <mxPoint x="570" y="190" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3r -->
+        <mxCell id="m3r" value='{intent:&quot;ETF&quot;, tool:&quot;rag&quot;}' style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#01A88D;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="570" y="220" as="sourcePoint"/>
+            <mxPoint x="420" y="220" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. IntentDetectedEvent -->
+        <mxCell id="m4" value="4. ◀ IntentDetectedEvent (ETF)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#E67E22;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="250" as="sourcePoint"/>
+            <mxPoint x="100" y="250" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 5. ToolSelectedEvent -->
+        <mxCell id="m5" value="5. ◀ ToolSelectedEvent (rag)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#E67E22;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="280" as="sourcePoint"/>
+            <mxPoint x="100" y="280" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ===== Phase 2: Embedding ===== -->
+
+        <!-- 6. Agent -> RAG: execute -->
+        <mxCell id="m6" value="6. execute(question, &quot;ETF&quot;)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="320" as="sourcePoint"/>
+            <mxPoint x="720" y="320" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 7. RAG -> Titan: embed -->
+        <mxCell id="m7" value="7. invoke_model(Titan, {inputText: question})" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#01A88D;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="350" as="sourcePoint"/>
+            <mxPoint x="870" y="350" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 7r. Titan -> RAG: embedding -->
+        <mxCell id="m7r" value="embedding[1024] + tokenCount" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#01A88D;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="870" y="380" as="sourcePoint"/>
+            <mxPoint x="720" y="380" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ===== Phase 3: kNN Search ===== -->
+
+        <!-- 8. RAG -> OpenSearch: kNN -->
+        <mxCell id="m8" value="8. search(index=rag-etf, knn={vector, k=5})" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="420" as="sourcePoint"/>
+            <mxPoint x="1030" y="420" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8r. OpenSearch -> RAG: hits -->
+        <mxCell id="m8r" value="hits[5] {text, metadata, _score}" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#9673a6;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1030" y="450" as="sourcePoint"/>
+            <mxPoint x="720" y="450" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 9. RAG: build chunks -->
+        <mxCell id="m9" value="9. build chunks [{text, metadata, score}]" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#888;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="480" as="sourcePoint"/>
+            <mxPoint x="740" y="500" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. RAG -> Agent: ToolResult -->
+        <mxCell id="m10" value="10. ToolResult {query_step, execution(chunks)}" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#333;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="530" as="sourcePoint"/>
+            <mxPoint x="420" y="530" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 11. QueryGeneratedEvent -->
+        <mxCell id="m11" value="11. ◀ QueryGeneratedEvent (vector_search, rag-etf)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#E67E22;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="560" as="sourcePoint"/>
+            <mxPoint x="100" y="560" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 12. QueryExecutedEvent -->
+        <mxCell id="m12" value="12. ◀ QueryExecutedEvent (5개 청크)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#E67E22;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="590" as="sourcePoint"/>
+            <mxPoint x="100" y="590" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ===== Phase 4: Response Streaming ===== -->
+
+        <!-- 13. Agent -> Bedrock: response gen -->
+        <mxCell id="m13" value="13. converse_stream(RESPONSE_PROMPT + chunks)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=1;strokeColor=#01A88D;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="630" as="sourcePoint"/>
+            <mxPoint x="1180" y="630" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 13r. streaming -->
+        <mxCell id="m13r" value="text chunks (streaming)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#01A88D;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1180" y="660" as="sourcePoint"/>
+            <mxPoint x="420" y="660" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 14. TextChunkEvent -->
+        <mxCell id="m14" value="14. ◀ TextChunkEvent × N (streaming)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#E67E22;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="690" as="sourcePoint"/>
+            <mxPoint x="100" y="690" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 15. ResponseCompleteEvent -->
+        <mxCell id="m15" value="15. ◀ ResponseCompleteEvent (total: latency, tokens, cost)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#E67E22;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="720" as="sourcePoint"/>
+            <mxPoint x="100" y="720" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 16. session_info -->
+        <mxCell id="m16" value="16. ◀ session_info {session_id, turn_id}" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=1;strokeColor=#E67E22;fontSize=9;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="750" as="sourcePoint"/>
+            <mxPoint x="100" y="750" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ===== Phase Labels ===== -->
+        <mxCell id="p1" value="Phase 1&#xa;Intent + Tool" style="text;html=1;fontSize=9;fontStyle=3;fontColor=#E67E22;align=left;" vertex="1" parent="1">
+          <mxGeometry x="20" y="180" width="80" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2" value="Phase 2&#xa;Embedding" style="text;html=1;fontSize=9;fontStyle=3;fontColor=#01A88D;align=left;" vertex="1" parent="1">
+          <mxGeometry x="20" y="345" width="80" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3" value="Phase 3&#xa;kNN Search" style="text;html=1;fontSize=9;fontStyle=3;fontColor=#9673a6;align=left;" vertex="1" parent="1">
+          <mxGeometry x="20" y="415" width="80" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4" value="Phase 4&#xa;Response&#xa;(Streaming)" style="text;html=1;fontSize=9;fontStyle=3;fontColor=#01A88D;align=left;" vertex="1" parent="1">
+          <mxGeometry x="20" y="630" width="80" height="40" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

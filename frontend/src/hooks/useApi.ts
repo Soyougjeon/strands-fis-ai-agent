@@ -3,6 +3,7 @@ import type {
   ConversationDetail,
   ConversationSummary,
   ExampleQueries,
+  GraphData,
   TokenUsageStats,
 } from "../types";
 
@@ -74,6 +75,21 @@ export function useApi() {
     return data.conversations;
   }, []);
 
+  const getEntityGraph = useCallback(
+    async (tenant: string, search?: string): Promise<GraphData> => {
+      const params = search ? `?search=${encodeURIComponent(search)}` : "";
+      return fetchJson<GraphData>(`${BASE}/visualize/entity-graph/${tenant}${params}`);
+    },
+    []
+  );
+
+  const getKnowledgeGraph = useCallback(
+    async (params: string): Promise<GraphData> => {
+      return fetchJson<GraphData>(`${BASE}/visualize/knowledge-graph?${params}`);
+    },
+    []
+  );
+
   return {
     loading,
     setLoading,
@@ -83,5 +99,7 @@ export function useApi() {
     getExamples,
     getTokenUsage,
     getAdminConversations,
+    getEntityGraph,
+    getKnowledgeGraph,
   };
 }

@@ -87,23 +87,55 @@ def generate_etf_mock(count: int = None):
 
 def _generate_products(count):
     products = []
+    used_names = set()
+
+    # Phase 1: Guarantee at least one ETF per sub-category
+    guaranteed = []
+    for cat, info in CATEGORIES.items():
+        for sub in info["subs"]:
+            guaranteed.append((cat, sub))
+
+    # Phase 2: Fill remaining slots randomly
     cats = list(CATEGORIES.keys())
-    for i in range(count):
+    remaining = count - len(guaranteed)
+    extras = []
+    for _ in range(max(0, remaining)):
         cat = random.choice(cats)
         info = CATEGORIES[cat]
         sub = random.choice(info["subs"])
+        extras.append((cat, sub))
+
+    all_slots = guaranteed + extras
+
+    # Track sub-category counts for unique naming
+    sub_count = {}
+    for cat, sub in all_slots:
+        sub_count[sub] = sub_count.get(sub, 0) + 1
+
+    sub_idx = {}
+    for cat, sub in all_slots:
+        info = CATEGORIES[cat]
+        idx = sub_idx.get(sub, 0) + 1
+        sub_idx[sub] = idx
+
         code = f"KR7{random.randint(100000, 999999):06d}0"
         ticker = f"{random.randint(100000, 999999):06d}"
         nav = round(random.uniform(8000, 80000), 2)
-        aum = round(random.lognormvariate(24, 1.5), 2)  # ~100억~50000억
+        aum = round(random.lognormvariate(24, 1.5), 2)
         listing = date(2015, 1, 1) + timedelta(days=random.randint(0, 3650))
         hedge = info["hedge"] and random.random() > 0.4
+
+        # Unique name: add number suffix if multiple ETFs share the same sub
+        if sub_count[sub] > 1:
+            name = f"TIGER {sub}{idx} {'(H)' if hedge else ''}".strip()
+        else:
+            name = f"TIGER {sub} {'(H)' if hedge else ''}".strip()
 
         products.append({
             "ksd_fund_code": code,
             "ticker": ticker,
-            "name_ko": f"TIGER {sub} {'(H)' if hedge else ''}".strip(),
-            "name_en": f"TIGER {sub} ETF",
+            "name_ko": name,
+            "name_en": f"TIGER {sub} ETF {idx}",
             "benchmark_index": random.choice(info["benchmarks"]),
             "category_l1": cat,
             "category_l2": sub,

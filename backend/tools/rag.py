@@ -48,9 +48,26 @@ class RAGTool:
         embed_latency = time.time() - start
         cost = calculate_cost("titan-embed-v2", tokens_in, 0)
 
+        search_body = {
+            "size": 5,
+            "query": {
+                "knn": {
+                    "vector": {
+                        "vector": f"<embedding dim={len(embedding)}>",
+                        "k": 5,
+                    }
+                }
+            },
+            "_source": {"excludes": ["vector"]},
+        }
+        opensearch_query_str = json.dumps(
+            {"index": index_name, "body": search_body},
+            ensure_ascii=False, indent=2,
+        )
+
         result["query_step"] = {
             "query_type": "vector_search",
-            "query": f"kNN search on {index_name} (top_k=5)",
+            "query": opensearch_query_str,
             "latency": round(embed_latency, 3),
             "tokens_in": tokens_in,
             "tokens_out": 0,
@@ -60,7 +77,7 @@ class RAGTool:
         # Step 2: kNN search
         start = time.time()
         try:
-            search_body = {
+            actual_search_body = {
                 "size": 5,
                 "query": {
                     "knn": {
@@ -73,7 +90,7 @@ class RAGTool:
                 "_source": {"excludes": ["vector"]},
             }
 
-            response = self.os_client.search(index=index_name, body=search_body)
+            response = self.os_client.search(index=index_name, body=actual_search_body)
             hits = response.get("hits", {}).get("hits", [])
             exec_latency = time.time() - start
 

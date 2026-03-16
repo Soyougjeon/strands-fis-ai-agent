@@ -18,10 +18,46 @@ import { useWebSocket } from "./hooks/useWebSocket";
 import { useApi } from "./hooks/useApi";
 import Sidebar from "./components/sidebar/Sidebar";
 import ChatPanel from "./components/chat/ChatPanel";
-import GraphNetworkPage from "./components/visualization/GraphNetworkPage";
+import AgentProcessPanel from "./components/chat/AgentProcessPanel";
+import EntityGraphPage from "./components/visualization/EntityGraphPage";
+import KnowledgeGraphPage from "./components/visualization/KnowledgeGraphPage";
 import AdminDashboard from "./components/admin/AdminDashboard";
 
-type Tab = "chat" | "graph" | "admin";
+type Tab = "chat" | "graph" | "knowledge" | "admin";
+
+function ResizablePanel({ children }: { children: React.ReactNode }) {
+  const [width, setWidth] = useState(360);
+  const dragging = useRef(false);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragging.current = true;
+    const startX = e.clientX;
+    const startW = width;
+    const onMove = (ev: MouseEvent) => {
+      if (!dragging.current) return;
+      const diff = startX - ev.clientX;
+      setWidth(Math.max(280, Math.min(700, startW + diff)));
+    };
+    const onUp = () => {
+      dragging.current = false;
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }, [width]);
+
+  return (
+    <div className="relative flex border-l overflow-hidden" style={{ width, minWidth: 280 }}>
+      <div
+        onMouseDown={onMouseDown}
+        className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-orange-300 z-10"
+      />
+      <div className="flex-1 overflow-hidden">{children}</div>
+    </div>
+  );
+}
 
 export default function App() {
   const api = useApi();
@@ -40,18 +76,16 @@ export default function App() {
   const [currentTotal, setCurrentTotal] = useState<TotalMetrics | null>(null);
   const [showProcess, setShowProcess] = useState(false);
 
-  // Graph state
-  const [graphDataMap] = useState<Record<string, GraphData | null>>({
-    ETF: null,
-    Bond: null,
-    Fund: null,
-  });
+  // Graph state from chat (passed to EntityGraphPage / KnowledgeGraphPage)
+  const [chatGraphData, setChatGraphData] = useState<{ data: GraphData; label: string } | null>(null);
+  const [chatLexicalGraphData, setChatLexicalGraphData] = useState<{ data: GraphData; label: string } | null>(null);
 
   // Refs for streaming message assembly
   const streamingMsgRef = useRef<string>("");
   const streamingChartRef = useRef<ChartData | undefined>(undefined);
   const streamingRawRef = useRef<unknown>(undefined);
   const streamingGraphRef = useRef<GraphData | undefined>(undefined);
+  const streamingLexicalGraphRef = useRef<GraphData | undefined>(undefined);
   // Ref to avoid stale closure in handleEvent
   const currentProcessRef = useRef<Partial<AgentProcess>>({});
 
@@ -103,7 +137,12 @@ export default function App() {
         }));
         if (d.chart_data) streamingChartRef.current = d.chart_data;
         if (d.raw_data) streamingRawRef.current = d.raw_data;
-        if (d.graph_data) streamingGraphRef.current = d.graph_data;
+        if (d.graph_data && d.graph_data.nodes && d.graph_data.nodes.length > 0) {
+          streamingGraphRef.current = d.graph_data;
+        }
+        if (d.lexical_graph_data && d.lexical_graph_data.nodes && d.lexical_graph_data.nodes.length > 0) {
+          streamingLexicalGraphRef.current = d.lexical_graph_data;
+        }
         break;
       }
       case "text_chunk": {
@@ -138,7 +177,7 @@ export default function App() {
           cost: d.total_cost,
         };
         setCurrentTotal(total);
-        const respStep = { latency: d.total_latency, tokens_in: 0, tokens_out: 0, cost: 0 };
+        const respStep = { latency: d.resp_latency || d.total_latency, tokens_in: d.resp_tokens_in || 0, tokens_out: d.resp_tokens_out || 0, cost: d.resp_cost || 0, estimated: (d as Record<string, unknown>).resp_estimated || false };
         setCurrentProcess((prev) => ({
           ...prev,
           response_generation: respStep,
@@ -156,6 +195,7 @@ export default function App() {
                 chartData: streamingChartRef.current,
                 rawData: streamingRawRef.current,
                 graphData: streamingGraphRef.current,
+                lexicalGraphData: streamingLexicalGraphRef.current,
               },
             ];
           }
@@ -203,6 +243,7 @@ export default function App() {
     streamingChartRef.current = undefined;
     streamingRawRef.current = undefined;
     streamingGraphRef.current = undefined;
+    streamingLexicalGraphRef.current = undefined;
     setCurrentProcess({});
     currentProcessRef.current = {};
     setCurrentTotal(null);
@@ -251,34 +292,49 @@ export default function App() {
     setCurrentProcess({});
     currentProcessRef.current = {};
     setCurrentTotal(null);
+    setChatGraphData(null);
+    setChatLexicalGraphData(null);
     setActiveTab("chat");
+  };
+
+  const handleViewGraph = (graphData: GraphData, label: string) => {
+    setChatGraphData({ data: graphData, label });
+    setActiveTab("graph");
+  };
+
+  const handleViewLexicalGraph = (lexicalGraphData: GraphData, label: string) => {
+    setChatLexicalGraphData({ data: lexicalGraphData, label });
+    setActiveTab("knowledge");
   };
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Top nav */}
-      <header className="bg-white border-b px-4 py-2 flex items-center justify-between">
+      <header className="bg-orange-500 px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-sm font-bold text-gray-800">미래에셋증권</h1>
+          <h1 className="text-sm font-bold text-white">A Securities</h1>
           <nav className="flex gap-1">
-            {(["chat", "graph", "admin"] as Tab[]).map((tab) => (
+            {(["chat", "graph", "knowledge", "admin"] as Tab[]).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  if (tab === "chat") setSidebarOpen(true);
+                }}
                 className={`px-3 py-1 text-sm rounded ${
                   activeTab === tab
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-white text-orange-600 font-semibold"
+                    : "text-orange-100 hover:bg-orange-400"
                 }`}
               >
-                {tab === "chat" ? "Chat" : tab === "graph" ? "Graph Network" : "Admin"}
+                {tab === "chat" ? "Chat" : tab === "graph" ? "Entity Graph" : tab === "knowledge" ? "Lexical Graph" : "Admin"}
               </button>
             ))}
           </nav>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 text-xs text-orange-100">
           <span
-            className={`w-2 h-2 rounded-full ${connected ? "bg-green-400" : "bg-red-400"}`}
+            className={`w-2 h-2 rounded-full ${connected ? "bg-green-300" : "bg-red-300"}`}
           />
           {connected ? "연결됨" : "연결 끊김"}
         </div>
@@ -286,39 +342,60 @@ export default function App() {
 
       {/* Main area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <Sidebar
-          open={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-          conversations={conversations}
-          currentSessionId={currentSessionId}
-          examples={examples}
-          onSelectConversation={handleSelectConversation}
-          onNewConversation={handleNewConversation}
-          onSelectExample={handleSend}
-          onDeleteConversation={handleDeleteConversation}
-        />
+        {/* Sidebar - only visible on chat tab */}
+        {activeTab === "chat" && (
+          <Sidebar
+            open={sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+            conversations={conversations}
+            currentSessionId={currentSessionId}
+            examples={examples}
+            onSelectConversation={handleSelectConversation}
+            onNewConversation={handleNewConversation}
+            onSelectExample={handleSend}
+            onDeleteConversation={handleDeleteConversation}
+          />
+        )}
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden">
-          {activeTab === "chat" && (
-            <ChatPanel
-              messages={messages}
-              isStreaming={isStreaming}
-              onSend={handleSend}
-              examples={examples}
-              currentProcess={currentProcess}
-              currentTotal={currentTotal}
-              showProcess={showProcess}
-              onToggleProcess={() => setShowProcess(!showProcess)}
-            />
-          )}
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-hidden">
+            {activeTab === "chat" && (
+              <ChatPanel
+                messages={messages}
+                isStreaming={isStreaming}
+                onSend={handleSend}
+                examples={examples}
+                currentProcess={currentProcess}
+                currentTotal={currentTotal}
+                showProcess={showProcess}
+                onToggleProcess={() => setShowProcess(!showProcess)}
+                onViewGraph={handleViewGraph}
+                onViewLexicalGraph={handleViewLexicalGraph}
+              />
+            )}
 
-          {activeTab === "graph" && (
-            <GraphNetworkPage graphDataMap={graphDataMap} />
-          )}
+            {activeTab === "graph" && (
+              <EntityGraphPage chatGraphData={chatGraphData} />
+            )}
 
-          {activeTab === "admin" && <AdminDashboard />}
+            {activeTab === "knowledge" && (
+              <KnowledgeGraphPage chatLexicalGraphData={chatLexicalGraphData} />
+            )}
+
+            {activeTab === "admin" && <AdminDashboard />}
+          </div>
+
+          {/* Right Panel - Agent Process (resizable) */}
+          {activeTab === "chat" && showProcess && (
+            <ResizablePanel>
+              <AgentProcessPanel
+                process={currentProcess}
+                total={currentTotal}
+                isStreaming={isStreaming}
+              />
+            </ResizablePanel>
+          )}
         </div>
       </div>
     </div>

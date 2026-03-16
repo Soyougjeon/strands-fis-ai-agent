@@ -12,7 +12,7 @@ from backend.agent.events import (
     text_chunk_event, response_complete_event,
 )
 from backend.agent.prompts import (
-    INTENT_DETECTION_PROMPT, TOOL_SELECTION_PROMPT, RESPONSE_GENERATION_PROMPT,
+    INTENT_AND_TOOL_PROMPT, RESPONSE_GENERATION_PROMPT,
 )
 from backend.config import Config
 from backend.services.token_tracker import calculate_cost
@@ -33,57 +33,50 @@ class AgentEngine:
         total_cost = 0.0
         agent_process = {}
 
-        # Step 1: Intent Detection
+        # Step 1+2: Intent Detection + Tool Selection (single LLM call)
         start = time.time()
-        intent_result = self._call_llm(INTENT_DETECTION_PROMPT, message)
-        latency = time.time() - start
-        intent_data = json.loads(intent_result["text"])
-        cost = calculate_cost("claude-sonnet", intent_result["tokens_in"], intent_result["tokens_out"])
-        total_tokens_in += intent_result["tokens_in"]
-        total_tokens_out += intent_result["tokens_out"]
+        combined_result = self._call_llm(INTENT_AND_TOOL_PROMPT, message)
+        latency = round(time.time() - start, 3)
+        combined_data = json.loads(combined_result["text"])
+        cost = calculate_cost("claude-sonnet", combined_result["tokens_in"], combined_result["tokens_out"])
+        total_tokens_in += combined_result["tokens_in"]
+        total_tokens_out += combined_result["tokens_out"]
         total_cost += cost
+
+        # Split cost/tokens evenly for display purposes
+        half_tokens_in = combined_result["tokens_in"] // 2
+        half_tokens_out = combined_result["tokens_out"] // 2
+        half_cost = round(cost / 2, 6)
+
+        intent = combined_data["intent"]
+        tool_name = combined_data["tool"]
 
         agent_process["intent_detection"] = {
-            "intent": intent_data["intent"],
-            "confidence": intent_data.get("confidence", 0),
-            "latency": round(latency, 3),
-            "tokens_in": intent_result["tokens_in"],
-            "tokens_out": intent_result["tokens_out"],
-            "cost": round(cost, 6),
+            "intent": intent,
+            "confidence": combined_data.get("confidence", 0),
+            "latency": latency,
+            "tokens_in": half_tokens_in,
+            "tokens_out": half_tokens_out,
+            "cost": half_cost,
         }
         yield intent_detected_event(
-            intent_data["intent"], intent_data.get("confidence", 0),
-            round(latency, 3), intent_result["tokens_in"],
-            intent_result["tokens_out"], round(cost, 6),
+            intent, combined_data.get("confidence", 0),
+            latency, half_tokens_in, half_tokens_out, half_cost,
         )
-
-        intent = intent_data["intent"]
-
-        # Step 2: Tool Selection
-        start = time.time()
-        tool_result = self._call_llm(TOOL_SELECTION_PROMPT, message)
-        latency = time.time() - start
-        tool_data = json.loads(tool_result["text"])
-        cost = calculate_cost("claude-sonnet", tool_result["tokens_in"], tool_result["tokens_out"])
-        total_tokens_in += tool_result["tokens_in"]
-        total_tokens_out += tool_result["tokens_out"]
-        total_cost += cost
 
         agent_process["tool_selection"] = {
-            "tool": tool_data["tool"],
-            "rationale": tool_data.get("rationale", ""),
-            "latency": round(latency, 3),
-            "tokens_in": tool_result["tokens_in"],
-            "tokens_out": tool_result["tokens_out"],
-            "cost": round(cost, 6),
+            "tool": tool_name,
+            "rationale": combined_data.get("rationale", ""),
+            "latency": latency,
+            "tokens_in": combined_result["tokens_in"] - half_tokens_in,
+            "tokens_out": combined_result["tokens_out"] - half_tokens_out,
+            "cost": round(cost - half_cost, 6),
         }
         yield tool_selected_event(
-            tool_data["tool"], tool_data.get("rationale", ""),
-            round(latency, 3), tool_result["tokens_in"],
-            tool_result["tokens_out"], round(cost, 6),
+            tool_name, combined_data.get("rationale", ""),
+            latency, combined_result["tokens_in"] - half_tokens_in,
+            combined_result["tokens_out"] - half_tokens_out, round(cost - half_cost, 6),
         )
-
-        tool_name = tool_data["tool"]
 
         # Step 3: Tool Execution
         tool_handler = tools.get(tool_name)
@@ -100,10 +93,16 @@ class AgentEngine:
             total_tokens_out += qs.get("tokens_out", 0)
             total_cost += qs.get("cost", 0)
             agent_process["query_generation"] = qs
+            extra = {}
+            if qs.get("toolkit_params"):
+                extra["toolkit_params"] = qs["toolkit_params"]
+            if qs.get("opensearch_query"):
+                extra["opensearch_query"] = qs["opensearch_query"]
             yield query_generated_event(
                 qs.get("query_type", ""), qs.get("query", ""),
                 qs.get("latency", 0), qs.get("tokens_in", 0),
                 qs.get("tokens_out", 0), qs.get("cost", 0),
+                **extra,
             )
 
         # Query Executed event
@@ -114,58 +113,95 @@ class AgentEngine:
             exec_data.get("raw_data"),
             exec_data.get("graph_data"),
             exec_data.get("chart_data"),
+            exec_data.get("lexical_graph_data"),
             exec_data.get("latency", 0),
+            exec_data.get("est_tokens_in", 0),
+            exec_data.get("est_tokens_out", 0),
         )
 
-        # Step 4: Response Generation (streaming)
+        # Step 4: Response Generation
         start = time.time()
-        context_summary = context.get("summary", "")
-        recent_turns = context.get("recent_turns", [])
-        recent_text = "\n".join(
-            f"Q: {t.get('question', '')}\nA: {t.get('response', '')}"
-            for t in recent_turns
-        )
-
-        raw_data = exec_data.get("raw_data")
-        if raw_data is not None:
-            raw_data_str = json.dumps(raw_data, ensure_ascii=False, default=str)
-            if len(raw_data_str) > 8000:
-                raw_data_str = raw_data_str[:8000] + "... (truncated)"
-        else:
-            raw_data_str = "없음"
-
-        prompt = RESPONSE_GENERATION_PROMPT.format(
-            context_summary=context_summary or "없음",
-            recent_turns=recent_text or "없음",
-            question=message,
-            tool_name=tool_name,
-            query=tool_exec_result.get("query_step", {}).get("query", ""),
-            result_summary=exec_data.get("result_summary", ""),
-            raw_data=raw_data_str,
-        )
-
         response_text = ""
-        resp_result = self._call_llm_streaming(prompt)
-        for chunk in resp_result["chunks"]:
-            response_text += chunk
-            yield text_chunk_event(chunk)
 
-        latency = time.time() - start
-        cost = calculate_cost("claude-sonnet", resp_result["tokens_in"], resp_result["tokens_out"])
-        total_tokens_in += resp_result["tokens_in"]
-        total_tokens_out += resp_result["tokens_out"]
-        total_cost += cost
+        if tool_exec_result.get("direct_response"):
+            # GraphRAG: toolkit already generated response — stream directly
+            direct = tool_exec_result["direct_response"]
+            # Split into chunks for streaming effect
+            chunk_size = 50
+            for i in range(0, len(direct), chunk_size):
+                chunk = direct[i:i + chunk_size]
+                response_text += chunk
+                yield text_chunk_event(chunk)
 
-        agent_process["response_generation"] = {
-            "latency": round(latency, 3),
-            "tokens_in": resp_result["tokens_in"],
-            "tokens_out": resp_result["tokens_out"],
-            "cost": round(cost, 6),
-        }
+            latency = time.time() - start
+            # Include estimated toolkit LLM tokens in totals
+            est_in = exec_data.get("est_tokens_in", 0)
+            est_out = exec_data.get("est_tokens_out", 0)
+            est_cost = calculate_cost("claude-sonnet", est_in, est_out) if (est_in or est_out) else 0
+            total_tokens_in += est_in
+            total_tokens_out += est_out
+            total_cost += est_cost
+            agent_process["response_generation"] = {
+                "latency": round(latency, 3),
+                "tokens_in": est_in,
+                "tokens_out": est_out,
+                "cost": round(est_cost, 6),
+                "estimated": True,
+            }
+        else:
+            # Other tools: generate response via engine LLM (streaming)
+            context_summary = context.get("summary", "")
+            recent_turns = context.get("recent_turns", [])
+            recent_text = "\n".join(
+                f"Q: {t.get('question', '')}\nA: {t.get('response', '')}"
+                for t in recent_turns
+            )
+
+            raw_data = exec_data.get("raw_data")
+            if raw_data is not None:
+                raw_data_str = json.dumps(raw_data, ensure_ascii=False, default=str)
+                if len(raw_data_str) > 8000:
+                    raw_data_str = raw_data_str[:8000] + "... (truncated)"
+            else:
+                raw_data_str = "없음"
+
+            prompt = RESPONSE_GENERATION_PROMPT.format(
+                context_summary=context_summary or "없음",
+                recent_turns=recent_text or "없음",
+                question=message,
+                tool_name=tool_name,
+                query=(tool_exec_result.get("query_step") or {}).get("query", ""),
+                result_summary=exec_data.get("result_summary", ""),
+                raw_data=raw_data_str,
+            )
+
+            resp_result = self._call_llm_streaming(prompt)
+            for chunk in resp_result["chunks"]:
+                response_text += chunk
+                yield text_chunk_event(chunk)
+
+            latency = time.time() - start
+            cost = calculate_cost("claude-sonnet", resp_result["tokens_in"], resp_result["tokens_out"])
+            total_tokens_in += resp_result["tokens_in"]
+            total_tokens_out += resp_result["tokens_out"]
+            total_cost += cost
+
+            agent_process["response_generation"] = {
+                "latency": round(latency, 3),
+                "tokens_in": resp_result["tokens_in"],
+                "tokens_out": resp_result["tokens_out"],
+                "cost": round(cost, 6),
+            }
 
         total_latency = round(time.time() - total_start, 3)
+        resp_step = agent_process.get("response_generation", {})
         yield response_complete_event(
             total_latency, total_tokens_in, total_tokens_out, round(total_cost, 6),
+            resp_latency=resp_step.get("latency", 0),
+            resp_tokens_in=resp_step.get("tokens_in", 0),
+            resp_tokens_out=resp_step.get("tokens_out", 0),
+            resp_cost=resp_step.get("cost", 0),
+            resp_estimated=resp_step.get("estimated", False),
         )
 
         # Attach metadata for caller
