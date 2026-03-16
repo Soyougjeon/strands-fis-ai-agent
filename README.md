@@ -2,11 +2,17 @@
 
 AI-powered financial data chatbot with multi-domain support (ETF, Bond, Fund) using 4 data access strategies: Text2SQL, RAG, GraphRAG, and OpenCypher.
 
+## Demo
+
+https://github.com/user-attachments/assets/b520f280-0c0a-409b-a7ec-fb36950dc215
+
 ## Architecture
 
-![Application Architecture](img/strands-fis-architecture.png)
-
+### Infrastructure
 ![Infrastructure Architecture](img/strands-fis-infra-architecture.png)
+
+### Application
+![Application Architecture](img/strands-fis-architecture.png)
 
 ## Key Features
 
